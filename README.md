@@ -7,7 +7,7 @@ One `.exe`, nothing to install (unless you want to build from source yourself!)
 
 ## Setup (for the streamer)
 
-1. Download `TipPhone.exe`, put it in its own folder (it saves its settings next to itself) and double-click it. Windows SmartScreen may warn about an unknown app - More info, Run anyway.
+1. Download [TipPhone.exe](https://github.com/TipPageHQ/TipPhone/releases/download/v1.0.0/TipPhone.exe), put it in its own folder (it saves its settings next to itself) and double-click it. Windows SmartScreen may warn about an unknown app - More info, Run anyway.
 2. Your browser opens the control page at `http://127.0.0.1:4455/`. It needs Chrome, Edge or another Chromium browser (only those can talk to a USB phone and pick audio outputs), and the page should say so if yours cant (🤞). Work down the numbered steps.
 3. Step 5, the OBS overlay, is optional. The page walks you through adding a Browser source, says whether OBS has it, and "Run a sample call on it" rings, answers and hangs up on the overlay without touching the queue. The card is TipPage green unless you pick another colour there.
 4. Step 6 matters (A LOT!): on your TipPage overlay's alert box, turn tip alerts off. Otherwise the alert box on your overlay plays every tip before the phone gets a chance. Subs, raids and the rest stay on the alert box, see "Alerts and the phone" below.
