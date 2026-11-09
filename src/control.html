@@ -1,0 +1,1232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>TipPhone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans:wght@700;800&family=Mulish:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #181a1d;
+    --card: #232529;
+    --card2: #2b2e32;
+    --hover: #373b40;
+    --line: rgba(255, 255, 255, 0.1);
+    --line2: rgba(255, 255, 255, 0.18);
+    --text: #f2f3f6;
+    --dim: #bdc1c7;
+    --dim2: #92979e;
+    --green: #4ade80;
+    --green2: #6ee7a0;
+    --black: #052e16;
+    --black2: #0f4a2a;
+    --amber: #f6c76e;
+    --red: #ffb4ab;
+    --heading: "Sofia Sans", "Segoe UI", system-ui, sans-serif;
+    --sans: "Mulish", "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+    --ease: cubic-bezier(0.25, 1, 0.5, 1);
+    --col: 760px;
+    --gutter: 20px;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0; min-height: 100vh; color: var(--text);
+    font: 500 15px/1.5 var(--sans); -webkit-font-smoothing: antialiased;
+  }
+  .col { max-width: var(--col); margin: 0 auto; padding: 0 var(--gutter); }
+  h1, h2, h3 { font-family: var(--heading); font-weight: 800; letter-spacing: -0.012em; margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: var(--text); }
+  code { font: 500 13.5px/1.4 var(--mono); }
+  button, select, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  /* header */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 22px 0 18px; }
+  .brand { display: flex; align-items: center; gap: 10px; font: 800 24px/1 var(--heading); letter-spacing: -0.012em; }
+  .brand svg { width: 22px; height: 22px; fill: var(--green); flex: none; }
+  .brand small { font: 600 13px/1 var(--sans); color: var(--dim2); letter-spacing: 0; margin-left: 2px; }
+  .addr { display: flex; align-items: center; gap: 8px; color: var(--dim2); font-size: 13.5px; }
+  .addr code { color: var(--dim); background: var(--card); padding: 5px 8px; border-radius: 4px; user-select: all; }
+
+  /* status band, green when live */
+  .band { background: var(--card); color: var(--text); transition: background-color 260ms var(--ease), color 260ms var(--ease); }
+  .band .col { padding-top: 30px; padding-bottom: 30px; display: grid; grid-template-columns: 1fr auto; gap: 8px 32px; align-items: start; }
+  .band h1 { font-size: clamp(30px, 5vw, 42px); line-height: 1.02; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .band h1 svg { width: 0.8em; height: 0.8em; fill: currentColor; flex: none; display: none; }
+  .band[data-ringing="1"] h1 svg { display: block; animation: wiggle 1.2s infinite; }
+  .band .lead { margin-top: 8px; max-width: 60ch; color: var(--dim); font-size: 16px; text-wrap: pretty; }
+  .band .side { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+  .band .amount { font: 800 clamp(28px, 5vw, 40px)/1 var(--heading); letter-spacing: -0.012em; padding-top: 4px; font-variant-numeric: tabular-nums; }
+  .band .amount:empty { display: none; }
+  .band .queue { white-space: nowrap; }
+  .band .queue .err { display: block; margin-top: 6px; font-size: 13.5px; font-weight: 600; color: var(--dim); white-space: normal; max-width: 36ch; text-align: right; }
+  .band .queue .err:empty { display: none; }
+  .band[data-live="1"] .btn { background: transparent; color: var(--black); border: 1.5px solid var(--black); }
+  .band[data-live="1"] .btn:hover { background: var(--black); color: var(--green); }
+  .band[data-live="1"] .queue .err { color: var(--black2); }
+  .band .msg { grid-column: 1 / -1; margin-top: 6px; font-size: 16px; color: var(--text);
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .band .msg:empty { display: none; }
+  .band[data-live="1"] { background: var(--green); color: var(--black); }
+  .band[data-live="1"] .lead { color: var(--black2); }
+  .band[data-live="1"] .msg { color: var(--black); }
+  .band .swap { animation: rise 240ms var(--ease) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+  @keyframes wiggle {
+    0%, 50%, 100% { transform: rotate(0); }
+    5%, 15%, 25%, 35%, 45% { transform: rotate(-14deg); }
+    10%, 20%, 30%, 40% { transform: rotate(14deg); }
+  }
+
+  /* notices */
+  .notice { display: none; margin: 18px 0 0; padding: 12px 14px; border: 1px solid var(--line2); border-radius: 6px; background: var(--card); color: var(--dim); }
+  .notice.show { display: block; }
+  .notice b { color: var(--amber); font-weight: 700; }
+
+  /* setup steps */
+  .steps { list-style: none; margin: 10px 0 0; padding: 0; counter-reset: step; }
+  .step { position: relative; display: grid; grid-template-columns: 44px 1fr; gap: 0 14px; padding: 22px 0; border-top: 1px solid var(--line); }
+  .step:last-child { border-bottom: 1px solid var(--line); }
+  .step::before {
+    counter-increment: step; content: counter(step); grid-row: 1 / span 9;
+    font: 800 26px/1 var(--heading); color: var(--dim2); padding-top: 1px;
+    transition: color 200ms var(--ease);
+  }
+  .step > * { grid-column: 2; }
+  .step .head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .step h2 { font-size: 22px; line-height: 1.1; }
+  .step h2 .opt { font: 600 13px/1 var(--sans); color: var(--dim2); letter-spacing: 0; margin-left: 8px; }
+  .step .state { font-weight: 700; font-size: 13.5px; color: var(--dim2); display: inline-flex; align-items: center; gap: 6px; }
+  .step .state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: 0.55; }
+  .step .state:empty { display: none; }
+  .step .lead { margin-top: 6px; color: var(--dim); max-width: 64ch; text-wrap: pretty; }
+  .step .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .step .row + .row { margin-top: 10px; }
+  .step .fine { margin-top: 10px; color: var(--dim2); font-size: 13.5px; max-width: 64ch; }
+  .step .fine:empty { display: none; }
+  .step .line { margin-top: 12px; font-weight: 600; }
+
+  .step[data-state="now"] { background: var(--card); }
+  .step[data-state="now"]::after {
+    content: ""; position: absolute; inset: 0 calc(-1 * var(--gutter)); background: var(--card); z-index: -1;
+  }
+  .step[data-state="now"]::before { color: var(--green); }
+  .step[data-state="done"]::before { color: var(--dim2); }
+  .step[data-state="done"] h2 { color: var(--dim); }
+  .step[data-state="done"] .lead { display: none; }
+  .step[data-state="done"] .state, .step[data-state="obs"] .state { color: var(--green); }
+  .step[data-state="done"] .state::before, .step[data-state="obs"] .state::before { opacity: 1; }
+  .step[data-state="warn"] .state { color: var(--amber); }
+  .step .state.flip { animation: rise 220ms var(--ease) both; }
+
+  /* buttons */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; padding: 0 16px;
+    border-radius: 6px; border: 1px solid transparent; cursor: pointer; white-space: nowrap;
+    font: 800 15px/1 var(--heading); letter-spacing: 0;
+    background: var(--card2); color: var(--text); border-color: var(--line2);
+    transition: background-color 150ms var(--ease), border-color 150ms var(--ease), color 150ms var(--ease);
+  }
+  .btn:hover { background: var(--hover); }
+  .btn.go { background: var(--green); color: var(--black); border-color: transparent; }
+  .btn.go:hover { background: var(--green2); }
+  .btn.sm { height: 32px; padding: 0 12px; font-size: 14px; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn:disabled:hover { background: var(--card2); }
+  .btn.go:disabled:hover { background: var(--green); }
+  .textlink { background: none; border: 0; padding: 0; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-weight: 600; }
+  .textlink:hover { color: var(--text); }
+
+  /* fields */
+  .field { display: grid; grid-template-columns: 132px 1fr; gap: 10px; align-items: center; margin-top: 10px; }
+  .field > label:first-child { color: var(--dim); font-weight: 600; }
+  select, input[type=text] {
+    width: 100%; min-width: 0; height: 36px; padding: 0 10px; border-radius: 4px;
+    background: var(--bg); border: 1px solid var(--line); color: var(--text);
+  }
+  select:focus, input[type=text]:focus { border-color: var(--line2); outline: none; }
+  input[type=range] { width: 100%; accent-color: var(--green); margin: 0; }
+  input[type=color] {
+    width: 56px; height: 36px; padding: 3px; border-radius: 4px; cursor: pointer;
+    background: var(--bg); border: 1px solid var(--line);
+  }
+  input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+  input[type=color]::-webkit-color-swatch { border: 0; border-radius: 2px; }
+  .num { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .num input[type=number] {
+    width: 84px; height: 36px; padding: 0 10px; border-radius: 4px; text-align: right;
+    background: var(--bg); border: 1px solid var(--line); color: var(--text); font-variant-numeric: tabular-nums;
+  }
+  .num input[type=number]:focus { border-color: var(--line2); outline: none; }
+  .num input[type=number]:disabled { opacity: 0.45; }
+  .num .unit { color: var(--dim2); font-size: 13.5px; }
+  /* a box and its words move together when the row wraps */
+  .num .pair { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .num .pair + .pair { margin-left: 6px; }
+  .opts { margin-top: 28px; }
+  .opts h2 { font-size: 22px; }
+  .opts .lead { margin-top: 6px; color: var(--dim); max-width: 64ch; }
+  .opts .field { grid-template-columns: 220px 1fr; }
+  .opts .fine { margin-top: 12px; color: var(--dim2); font-size: 13.5px; }
+  .opts .fine:empty { display: none; }
+  .check { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+  .check input { width: 16px; height: 16px; margin: 0; accent-color: var(--green); }
+  .checks { display: flex; gap: 18px; flex-wrap: wrap; }
+  .seg { display: inline-flex; justify-self: start; border: 1px solid var(--line2); border-radius: 6px; overflow: hidden; }
+  .seg label { padding: 0 12px; height: 32px; display: inline-flex; align-items: center; cursor: pointer; font-weight: 700; color: var(--dim); }
+  .seg label + label { border-left: 1px solid var(--line2); }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg input:checked + span { color: var(--black); }
+  .seg label:has(input:checked) { background: var(--green); }
+  .seg label:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: -2px; }
+
+  /* overlay url + obs steps */
+  .url { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .url code { background: var(--bg); border: 1px solid var(--line); padding: 8px 10px; border-radius: 4px; user-select: all; color: var(--text); }
+  .how { margin: 14px 0 0; padding: 0 0 0 20px; color: var(--dim); max-width: 64ch; }
+  .how li { margin-top: 6px; }
+  .how li::marker { color: var(--dim2); font-weight: 700; }
+  .how b { color: var(--text); font-weight: 700; }
+
+  /* folds: step 5's setup and the two settings sections */
+  details { margin-top: 14px; }
+  summary { cursor: pointer; color: var(--dim); font-weight: 600; list-style: none; display: inline-flex; align-items: center; gap: 8px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: ""; width: 6px; height: 6px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform 150ms var(--ease); flex: none; }
+  details[open] summary::before { transform: rotate(45deg); }
+  details .inner { margin-top: 10px; }
+  .opts .fold { margin-top: 0; }
+  .opts .fold > summary { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; color: var(--text); }
+  .opts .fold > summary::before { align-self: center; margin-top: 2px; }
+  .opts .fold .sum { color: var(--dim2); font-size: 13.5px; font-weight: 600; }
+  .opts .fold[open] .sum { display: none; }
+  .num select { width: auto; height: 32px; padding: 0 8px; }
+  .num .check { margin-right: 2px; }
+
+  /* log */
+  .recent { margin-top: 36px; }
+  .recent .head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .recent h2 { font-size: 22px; }
+  .recent ol { list-style: none; margin: 10px 0 0; padding: 0; }
+  .recent li { display: grid; grid-template-columns: 76px 1fr; gap: 12px; padding: 7px 0; border-top: 1px solid var(--line); }
+  .recent li:last-child { border-bottom: 1px solid var(--line); }
+  .recent time { color: var(--dim2); font: 500 13px/1.6 var(--mono); font-variant-numeric: tabular-nums; }
+  .recent li.empty { display: block; color: var(--dim2); padding: 10px 0; }
+
+  footer.about { margin: 40px 0 60px; color: var(--dim2); font-size: 13.5px; max-width: 64ch; text-wrap: pretty; }
+  footer.about p + p { margin-top: 6px; }
+  footer.about a { color: var(--dim); }
+
+  @media (max-width: 560px) {
+    .band .col { grid-template-columns: 1fr; }
+    .opts .field { grid-template-columns: 1fr; gap: 4px; }
+    .step { grid-template-columns: 34px 1fr; }
+    .step::before { font-size: 22px; }
+    .field { grid-template-columns: 1fr; gap: 4px; }
+    .recent li { grid-template-columns: 68px 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="col top">
+  <div class="brand">
+    TipPhone
+  </div>
+  <div class="addr">This page is at <code id="ctrlUrl">http://127.0.0.1:4455/</code><button class="btn sm" id="copyCtrl" type="button">Copy</button></div>
+</header>
+
+<section class="band" id="band" data-live="0" data-ringing="0">
+  <div class="col">
+    <div>
+      <h1><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg><span id="bandTitle" aria-live="polite">Starting.</span></h1>
+      <p class="lead" id="bandLead">Connecting to TipPhone.</p>
+    </div>
+    <div class="side">
+      <div class="amount" id="bandAmount"></div>
+      <div class="queue" id="bandQueue" hidden>
+        <button class="btn" id="queueBtn" type="button"></button>
+        <span class="err" id="queueErr"></span>
+      </div>
+    </div>
+    <p class="msg" id="bandMsg"></p>
+  </div>
+</section>
+
+<main class="col">
+  <div class="notice" id="notice"></div>
+
+  <ol class="steps">
+
+    <li class="step" id="s1" data-state="now">
+      <div class="head"><h2>Connect your TipPage</h2><span class="state" id="st1"></span></div>
+      <p class="lead">Signs you in at auth.tippage.com and asks for two permissions: read the TTS queue, and mark a tip as playing or played.</p>
+      <p class="line" id="accountLine"></p>
+      <div class="row">
+        <button class="btn go" id="connectTp" type="button">Connect TipPage</button>
+        <button class="btn" id="disconnectTp" type="button" hidden>Disconnect</button>
+      </div>
+      <p class="fine" id="authMsg"></p>
+      <p class="fine">Stays connected until you press Disconnect here or remove it in the dashboard under Settings, Developer, Connected apps.</p>
+    </li>
+
+    <li class="step" id="s2" data-state="todo">
+      <div class="head"><h2>Start</h2><span class="state" id="st2"></span></div>
+      <p class="lead">Chrome only plays sound and lists audio outputs on a page that's been clicked. If it asks for the microphone, allow it. The output names come with that permission, and nothing is recorded.</p>
+      <div class="row"><button class="btn go" id="startBtn" type="button">Start TipPhone</button></div>
+      <p class="fine" id="startMsg"></p>
+    </li>
+
+    <li class="step" id="s3" data-state="todo">
+      <div class="head"><h2>Connect the phone</h2><span class="state" id="st3"></span></div>
+      <p class="lead">Plug the phone in by USB, press Connect phone and pick it from the list that pops up. Close other applications that could be using the phone  (Teams etc) first.</p>
+      <p class="line" id="phoneLine">No phone connected.</p>
+      <div class="row">
+        <button class="btn go" id="connectPhone" type="button">Connect phone</button>
+        <button class="btn" id="testRing" type="button">Test the ringer</button>
+        <button class="btn go" id="hookBtn" type="button" hidden>Pick up</button>
+      </div>
+      <div class="row">
+        <button class="textlink" id="pretend" type="button">Try it without a phone</button>
+      </div>
+      <p class="fine" id="phoneMsg"></p>
+    </li>
+
+    <li class="step" id="s4" data-state="todo">
+      <div class="head"><h2>Choose where the sound goes</h2><span class="state" id="st4"></span></div>
+      <p class="lead">The call plays through the phone, and through whatever OBS captures as desktop audio if you want viewers to hear it. Play the test sound and check both.</p>
+      <div class="field"><label for="phoneSink">Phone</label><select id="phoneSink"></select></div>
+      <div class="field"><label for="phoneVol">Phone volume</label><input type="range" id="phoneVol" min="0" max="1" step="0.05"></div>
+      <div class="field"><label for="streamSink">Stream</label><select id="streamSink"></select></div>
+      <div class="field"><label for="streamVol">Stream volume</label><input type="range" id="streamVol" min="0" max="1" step="0.05"></div>
+      <div class="field"><span></span><label class="check"><input type="checkbox" id="streamOn"> Play the call on stream too</label></div>
+      <div class="field"><label>Ring</label>
+        <div class="checks">
+          <label class="check"><input type="checkbox" id="ringPhone"> through the phone</label>
+          <label class="check"><input type="checkbox" id="ringStream"> on stream</label>
+        </div>
+      </div>
+      <div class="field"><label for="ringVol">Ring volume</label><input type="range" id="ringVol" min="0" max="1" step="0.05"></div>
+      <div class="field"><label>Ring sound</label>
+        <div class="row" style="margin-top:0">
+          <span id="ringName">The built-in ring</span>
+          <button class="btn sm" id="ringPick" type="button">Choose a file</button>
+          <button class="btn sm" id="ringReset" type="button" hidden>Back to the built-in ring</button>
+          <input type="file" id="ringFile" accept="audio/*" hidden>
+        </div>
+      </div>
+      <div class="row"><button class="btn" id="testSound" type="button">Play test sound</button></div>
+      <p class="fine" id="soundMsg"></p>
+    </li>
+
+    <li class="step" id="s5" data-state="optional">
+      <div class="head"><h2>Show calls on stream<span class="opt">optional</span></h2><span class="state" id="st5"></span></div>
+      <p class="lead">An OBS overlay that shows who's calling, then the amount and message while they're on the line.</p>
+      <details class="fold" id="overlayFold">
+        <summary>Set it up</summary>
+        <div class="inner">
+          <ol class="how">
+            <li>In OBS, under Sources, press <b>+</b> and choose <b>Browser</b>.</li>
+            <li>Call it <b>TipPhone</b> and press OK.</li>
+            <li>Put this in the URL box: <span class="url"><code id="overlayUrl">http://127.0.0.1:4455/overlay</code><button class="btn sm" id="copyOverlay" type="button">Copy</button></span></li>
+            <li>Set Width to <b>1920</b> and Height to <b>1080</b>, then OK. Size it to your canvas like any other source.</li>
+          </ol>
+          <div class="field"><label>Card</label>
+            <div class="row" style="margin-top:0">
+              <span class="seg">
+                <label><input type="radio" name="pos" value="bottom" id="posBottom"><span>Bottom</span></label>
+                <label><input type="radio" name="pos" value="top" id="posTop"><span>Top</span></label>
+              </span>
+              <input type="color" id="oColor" value="#4ade80" title="Card colour">
+              <button class="btn sm" id="oColorReset" type="button" hidden>Back to green</button>
+            </div>
+          </div>
+          <div class="field"><label>Shows</label>
+            <div class="checks">
+              <label class="check"><input type="checkbox" id="oShowAmount"> the amount</label>
+              <label class="check"><input type="checkbox" id="oShowMessage"> what they said</label>
+            </div>
+          </div>
+          <div class="field"><label for="oEndedHold">Call ended stays up</label><span class="num"><input type="number" id="oEndedHold" min="0" max="60" step="1"><span class="unit">seconds</span></span></div>
+          <!-- <p class="fine">Untick what they said and the message is heard but not shown.</p> -->
+          <div class="row">
+            <button class="btn" id="testOverlay" type="button">Run a sample call on it</button>
+            <button class="btn" id="openOverlay" type="button">Open it in a tab</button>
+          </div>
+          <p class="fine" id="overlayMsg"></p>
+          <p class="fine">The status above says when OBS has loaded it. A browser tab counts as open, not as OBS.</p>
+        </div>
+      </details>
+    </li>
+
+    <li class="step" id="s6" data-state="todo">
+      <div class="head"><h2>Turn tip alerts off on your alert box</h2><span class="state" id="st6"></span></div>
+      <p class="lead">Otherwise the alert box plays every tip before the phone can ring. In the dashboard open Overlays, edit the overlay with the alert box, and under Alert events untick Tip. Leave the rest on.</p>
+      <div class="row">
+        <a class="btn" href="https://my.tippage.com/overlays" target="_blank" rel="noopener">Open my overlays</a>
+        <label class="check"><input type="checkbox" id="alertsOff"> Done, tip alerts are off</label>
+      </div>
+      <p class="fine" id="alertsMsg"></p>
+      <p class="fine">While an alert is on screen the phone holds its ring, and the alert box holds its alerts while someone is on the phone.</p>
+    </li>
+
+    <li class="step" id="s7" data-state="todo">
+      <div class="head"><h2>Try a call</h2><span class="state" id="st7"></span></div>
+      <p class="lead">Rings the phone with the last played tip that has audio. The queue isn't touched. To try the whole thing, add a manual tip from the dashboard. It joins the queue like a real tip and doesn't count as money.</p>
+      <div class="row"><button class="btn go" id="testCall" type="button">Test call</button></div>
+      <p class="fine" id="callMsg"></p>
+    </li>
+
+  </ol>
+
+  <section class="opts">
+    <details class="fold" id="voiceFold">
+      <summary><h2>What the phone says</h2><span class="sum" id="voiceSum"></span></summary>
+      <div class="inner">
+        <div class="field"><label for="vVoice">Voice</label><select id="vVoice"><option value="">Same as my main alert box</option></select></div>
+        <div class="field"><label>Reads out</label>
+          <div class="checks">
+            <label class="check"><input type="checkbox" id="vNames"> the name</label>
+            <label class="check"><input type="checkbox" id="vAmounts"> the amount</label>
+            <label class="check"><input type="checkbox" id="vMessages"> the message</label>
+          </div>
+        </div>
+        <div class="field"><label for="vRate">Speed and pitch</label><span class="num"><span class="pair"><input type="number" id="vRate" min="0.5" max="2" step="0.05"><span class="unit">speed</span></span><span class="pair"><input type="number" id="vPitch" min="0.7" max="1.5" step="0.05"><span class="unit">pitch, 1 is normal. Only for a voice picked here</span></span></span></div>
+        <p class="fine" id="voiceMsg"></p>
+      </div>
+    </details>
+  </section>
+
+  <section class="opts">
+    <details class="fold" id="callsFold">
+      <summary><h2>How calls behave</h2><span class="sum" id="callsSum"></span></summary>
+      <div class="inner">
+        <div class="field"><label for="oBetween">Gaps</label><span class="num"><span class="pair"><input type="number" id="oBetween" min="0" max="120" step="1"><span class="unit">s between calls</span></span><span class="pair"><input type="number" id="oAnswer" min="0" max="10" step="0.5"><span class="unit">s from picking up to the voice</span></span></span></div>
+        <div class="field"><label for="oRingTimeout">Ringing</label><span class="num"><span class="pair"><input type="number" id="oRingTimeout" min="0" max="300" step="1"><span class="unit">s then stop, 0 rings until answered</span></span><span class="pair"><input type="number" id="oRetry" min="5" max="3600" step="1"><span class="unit">s until a missed call rings again</span></span></span></div>
+        <div class="field"><label for="oHangBefore">Hanging up</label><span class="num"><span class="pair"><span class="unit">before the voice</span><select id="oHangBefore"><option value="release">puts the tip back</option><option value="finish">counts it as played</option></select></span><span class="pair"><span class="unit">during it</span><select id="oHangDuring"><option value="release">puts the tip back</option><option value="finish">counts it as played</option></select></span></span></div>
+        <div class="field"><label for="oWaitAlertsSec">Alerts</label><span class="num"><label class="check"><input type="checkbox" id="oWaitAlerts"> Don't ring while one is on the overlay,</label><span class="pair"><input type="number" id="oWaitAlertsSec" min="5" max="600" step="1"><span class="unit">s at most</span></span></span></div>
+        <div class="field"><label for="oWaitAudio">AI voices</label><span class="num"><input type="number" id="oWaitAudio" min="5" max="600" step="1"><span class="unit">s to wait for one, then the next tip rings first</span></span></div>
+        <div class="field"><label>Replays</label><label class="check"><input type="checkbox" id="oReplays"> Ring for replays from the dashboard</label></div>
+        <p class="fine">Picking up during an alert holds the voice until it's done. Saved to config.json next to TipPhone.exe.</p>
+        <p class="fine" id="optsMsg"></p>
+      </div>
+    </details>
+  </section>
+
+  <section class="recent">
+    <div class="head"><h2>What's happened</h2><button class="textlink" id="logMore" type="button" hidden>Show everything</button></div>
+    <ol id="log"><li class="empty">Nothing yet.</li></ol>
+  </section>
+
+  <footer class="about">
+    <p>TipPhone<span id="version"></span>, made for TipPage. Leave this tab and the TipPhone window open while you stream.</p>
+    <p>Settings are in config.json next to TipPhone.exe; port and browser need a restart. Your TipPage sign-in is in tokens.json on this PC. This page is served from 127.0.0.1 and nothing outside this PC can reach it.</p>
+    <p><a href="https://tippage.com" target="_blank" rel="noopener">tippage.com</a></p>
+  </footer>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+
+// the one phone tipphone works with, by its usb ids. its hook switch and its
+// screen are driven by its own report formats below; the ringer and ring led
+// are output fields read off its hid descriptor on connect
+const PHONE_VENDOR = 0x095d;
+const PHONE_PRODUCT = 0x9201;
+const RINGER = 0x000b009e;
+const LED_RING = 0x00080018;
+
+const saved = JSON.parse(localStorage.getItem("tipphone") || "{}");
+delete saved.manual; // a learned hook signal, from before tipphone was this one phone only
+const settings = Object.assign({
+  phoneSink: "", streamSink: "", phoneVol: 1, streamVol: 0.8, streamOn: true,
+  ringPhone: true, ringStream: true, ringVol: 0.5,
+  overlayPos: "bottom", soundChecked: false, alertsOff: false, testCalled: false,
+  overlayFold: true, voiceFold: false, callsFold: false,
+}, saved);
+delete settings.overlayOn; // the old switch only hid step 5 on this page, the overlay never knew
+const save = () => localStorage.setItem("tipphone", JSON.stringify(settings));
+
+let me = null;
+let unlocked = false;
+let phone = null;
+let layout = null;
+let offHook = false;
+let outBufs = {};
+let ringTimer = null;
+let ringEls = [];
+let current = null;
+let hookPending = null;
+let hookTimer = null;
+let last = null;
+let logOpen = false;
+let ringUrl = "/ring";
+
+function post(path, body) {
+  return fetch(path, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body || {}),
+  }).then((r) => r.json()).catch(() => ({}));
+}
+
+function notice(html) {
+  $("#notice").innerHTML = html || "";
+  $("#notice").className = "notice" + (html ? " show" : "");
+}
+
+function copyButton(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const was = btn.textContent;
+    btn.textContent = "Copied";
+    setTimeout(() => { btn.textContent = was; }, 1500);
+  });
+}
+
+// ---- talking to the app ----
+
+// webhid and setSinkId are chromium only
+const canDoIt = !!navigator.hid && "setSinkId" in HTMLMediaElement.prototype;
+const wrongBrowser = () => "<b>This browser can't run TipPhone.</b> It needs Chrome, Edge or Brave for USB and audio output access. Open <code>" + location.origin + "/</code> in one of those.";
+
+const es = new EventSource("/events");
+es.onopen = () => notice(canDoIt ? "" : wrongBrowser());
+es.onerror = () => notice("<b>Can't reach TipPhone.</b> Check the TipPhone window is open. This page reconnects on its own.");
+es.onmessage = (e) => {
+  const m = JSON.parse(e.data);
+  if (m.type === "hello") {
+    me = m.id;
+    render(m);
+    if (unlocked) post("/player/" + me + "/ready", { ready: true });
+    reportPhone();
+  }
+  if (m.type === "status") render(m);
+  if (m.type === "ring") setRing(m.on);
+  if (m.type === "display") m.clear ? displayClear() : displayWrite(m.top, m.bottom);
+  if (m.type === "play") playTts(m);
+  if (m.type === "stop") stopTts();
+  if (m.type === "replaced") {
+    me = null;
+    notice("<b>This tab has stopped.</b> TipPhone is open in another tab and only one can run the phone. Close this one.");
+    setRing(false);
+    stopTts();
+  }
+};
+
+// band text per status: [title, lead, live]
+function bandFor(s) {
+  const who = s.account || "your TipPage";
+  if (!s.signedIn) return ["Connect your TipPage.", "Step 1. Sign in and approve TipPhone.", false];
+  if (!unlocked) return ["Press Start.", "Step 2. Chrome only plays sound on a page that's been clicked.", false];
+  if (s.call) {
+    const c = s.call;
+    const name = c.name + (c.test ? " (test)" : "");
+    if (c.state === "ringing") return [name + " is calling.", "Pick up the handset.", true];
+    if (c.state === "answering") {
+      if (c.holding) return ["Picked up.", "A " + c.holding + " alert is on your overlay. " + c.name + "'s message starts after it.", true];
+      return ["Picked up.", c.name + "'s message starts in a second.", true];
+    }
+    return ["On the phone with " + name + ".", "Hang up when it's done, or let it finish.", true];
+  }
+  switch (s.status) {
+    case "no-access": return ["TipPage refused access.", "Disconnect in step 1, then connect again and allow both permissions.", false];
+    case "api-down": return ["Can't reach TipPage.", "Retrying. Check the internet connection.", false];
+    case "no-player": return ["Press Start.", "Step 2. Chrome only plays sound on a page that's been clicked.", false];
+    case "no-phone": return ["Plug the phone in.", "Step 3. Or try it without one.", false];
+    case "off-hook": return ["The handset is up.", "Put it down to take calls.", false];
+    case "paused": return ["The TTS queue is paused.", "Resume it here or on TipPage.", false];
+    case "busy-elsewhere": return ["Something else is playing tips.", "Usually the alert box. Turn its tip alerts off (step 6).", false];
+    case "rendering": return ["A tip is in.", "Its AI voice is being made. The phone rings when it's ready.", true];
+    case "alert-on-screen": return [(s.alert?.name ? s.alert.name + "'s " + (s.alert.kind || "alert") : "An alert") + " is on your overlay.", "A tip is waiting. The phone rings after it.", true];
+    case "alert-coming": return ["An alert just came in.", "A tip is waiting. The phone gives the alert box a moment to show it first.", true];
+    case "waiting":
+      if (!s.live) return ["Waiting for a tip.", "The live connection to TipPage dropped and is reconnecting. Tips still arrive on the 5 second poll.", true];
+      return ["Waiting for a tip.", "Connected to " + who + ". The phone is on the hook.", true];
+    default: return ["Starting.", "Connecting to TipPhone.", false];
+  }
+}
+
+// removing and re-adding the class restarts its animation
+function animate(el, cls) {
+  el.classList.remove(cls);
+  void el.offsetWidth;
+  el.classList.add(cls);
+}
+
+function setText(el, text) {
+  if (el.textContent === text) return;
+  el.textContent = text;
+  animate(el, "swap");
+}
+
+function setStep(n, state, label) {
+  const li = $("#s" + n);
+  const st = $("#st" + n);
+  if (li.dataset.state !== state) li.dataset.state = state;
+  if (st.textContent !== label) {
+    st.textContent = label;
+    animate(st, "flip");
+  }
+}
+
+function overlayUrl() {
+  const base = last?.overlayUrl || "http://127.0.0.1:4455/overlay";
+  return settings.overlayPos === "top" ? base + "?pos=top" : base;
+}
+
+function render(s) {
+  last = s;
+  const [title, lead, live] = bandFor(s);
+  const band = $("#band");
+  setText($("#bandTitle"), title);
+  setText($("#bandLead"), lead);
+  band.dataset.live = live ? "1" : "0";
+  band.dataset.ringing = s.call?.state === "ringing" ? "1" : "0";
+  $("#bandAmount").textContent = s.call?.amount || "";
+  renderQueueButton(s);
+  renderVoices(s.voices);
+  renderConfig(s.config);
+  $("#bandMsg").textContent = s.call && s.call.state !== "ringing" ? s.call.message || "" : "";
+
+  // the first step that isn't done is the current one
+  let next = true;
+  const req = (n, done, doneLabel, todoLabel) => {
+    const state = done ? "done" : next ? "now" : "todo";
+    if (!done) next = false;
+    setStep(n, state, done ? doneLabel : state === "now" ? todoLabel || "" : "");
+  };
+  const connected = s.signedIn && s.live;
+  if (s.signedIn && !connected) {
+    setStep(1, "warn", s.status === "no-access" ? "Refused" : "Reconnecting");
+    if (s.status === "no-access") next = false;
+  } else req(1, connected, "Connected");
+  req(2, unlocked, "Done");
+  req(3, s.phone.connected, s.phone.offHook ? "Handset up" : "On the hook");
+  req(4, settings.soundChecked, "Checked");
+
+  const o = s.overlays || { count: 0, obs: 0, browser: 0 };
+  if (o.obs) setStep(5, "obs", o.obs > 1 ? "In OBS, " + o.obs + " sources" : "In OBS");
+  else if (o.browser) setStep(5, "optional", "Open in a tab, not OBS yet");
+  else setStep(5, "optional", "Not in OBS yet");
+
+  if (s.status === "busy-elsewhere") {
+    setStep(6, "warn", "Something else just played a tip");
+    next = false;
+  } else req(6, settings.alertsOff, "Done");
+  req(7, settings.testCalled, "Rang");
+
+  $("#accountLine").textContent = s.signedIn ? (connected ? "Connected to " + (s.account || "TipPage") + "." : "Signed in to " + (s.account || "TipPage") + ", waiting for the live connection.") : "";
+  $("#connectTp").hidden = s.signedIn;
+  $("#disconnectTp").hidden = !s.signedIn;
+  $("#ctrlUrl").textContent = s.controlUrl || $("#ctrlUrl").textContent;
+  $("#overlayUrl").textContent = overlayUrl();
+  $("#version").textContent = s.version ? " " + s.version : "";
+  if (s.ring) {
+    ringUrl = s.ring.url;
+    $("#ringName").textContent = s.ring.custom || "The built-in ring";
+    $("#ringReset").hidden = !s.ring.custom;
+  }
+  $("#testCall").disabled = !!s.call;
+  renderLog(s.lines || []);
+}
+
+// settings the app lets this page change. seconds here, ms in config.json
+const OPTS = {
+  oBetween: ["betweenCallsMs", 1000], oAnswer: ["answerDelayMs", 1000], oRingTimeout: ["ringTimeoutSec", 1],
+  oRetry: ["missedRetrySec", 1], oWaitAudio: ["waitForAudioSec", 1], oEndedHold: ["overlay.endedHoldMs", 1000],
+  oHangBefore: ["hangUpBeforeAudio"], oHangDuring: ["hangUpDuringAudio"], oReplays: ["includeReplays"],
+  oWaitAlerts: ["waitForAlerts"], oWaitAlertsSec: ["waitForAlertsSec", 1],
+  oShowAmount: ["overlay.showAmount"], oShowMessage: ["overlay.showMessage"], oColor: ["overlay.color"],
+  vVoice: ["voice.voice"], vRate: ["voice.rate", 1], vPitch: ["voice.pitch", 1],
+  vNames: ["voice.readNames"], vAmounts: ["voice.readAmounts"], vMessages: ["voice.readMessages"],
+};
+let voicesShown = "";
+function renderVoices(v) {
+  const key = v ? v.default?.voice + ":" + v.standard.length : "";
+  if (key === voicesShown) return;
+  voicesShown = key;
+  const sel = $("#vVoice");
+  const current = sel.value;
+  sel.innerHTML = "";
+  sel.add(new Option("Same as my main alert box" + (v?.default?.voice ? " (" + v.default.voice + ")" : ""), ""));
+  for (const x of v?.standard || []) sel.add(new Option(x.label + ", " + x.detail, x.id));
+  sel.value = current;
+  if (sel.value !== current) sel.value = "";
+}
+function renderConfig(c) {
+  if (!c) return;
+  for (const [id, [key, scale]] of Object.entries(OPTS)) {
+    const el = $("#" + id);
+    if (document.activeElement === el || !(key in c)) continue;
+    if (el.type === "checkbox") el.checked = !!c[key];
+    else if (scale) el.value = String(c[key] / scale);
+    else el.value = c[key];
+  }
+  $("#oColorReset").hidden = !c["overlay.color"] || c["overlay.color"] === "#4ade80";
+  // speed and pitch only apply with a voice of our own
+  const own = !!c["voice.voice"];
+  $("#vRate").disabled = !own;
+  $("#vPitch").disabled = !own;
+
+  // one line each while folded
+  const reads = [c["voice.readNames"] && "name", c["voice.readAmounts"] && "amount", c["voice.readMessages"] && "message"].filter(Boolean);
+  $("#voiceSum").textContent = (c["voice.voice"] || "Main alert box voice") + " · reads " + (reads.length ? reads.join(", ") : "nothing");
+  $("#callsSum").textContent = [
+    c.betweenCallsMs / 1000 + "s between calls",
+    c.ringTimeoutSec ? "stops ringing after " + c.ringTimeoutSec + "s" : "rings until answered",
+    c.waitForAlerts ? "waits for alerts" : "ignores alerts",
+  ].join(" · ");
+}
+for (const id of ["overlayFold", "voiceFold", "callsFold"]) {
+  $("#" + id).open = settings[id];
+  $("#" + id).ontoggle = (e) => { settings[id] = e.target.open; save(); };
+}
+for (const [id, [key, scale]] of Object.entries(OPTS)) {
+  const el = $("#" + id);
+  el.onchange = async () => {
+    const v = el.type === "checkbox" ? el.checked : scale ? Math.round(Number(el.value) * scale) : el.value;
+    const r = await post("/api/config", { [key]: v });
+    const msg = key.startsWith("overlay.") ? $("#overlayMsg") : key.startsWith("voice.") ? $("#voiceMsg") : $("#optsMsg");
+    msg.textContent = r.error || "Saved.";
+    if (r.config) renderConfig(r.config);
+  };
+}
+
+// the colour picker sends while it's being dragged, so the card follows live.
+// change (the generic handler above) sends the final one when it closes
+let colorTimer = null;
+$("#oColor").oninput = (e) => {
+  clearTimeout(colorTimer);
+  colorTimer = setTimeout(() => post("/api/config", { "overlay.color": e.target.value }), 120);
+};
+$("#oColorReset").onclick = async () => {
+  const r = await post("/api/config", { "overlay.color": "#4ade80" });
+  $("#overlayMsg").textContent = r.error || "Back to green.";
+  if (r.config) renderConfig(r.config);
+};
+
+// pause / resume button on the band
+let queueBusy = false;
+function renderQueueButton(s) {
+  const show = unlocked && s.signedIn && s.paused !== null && !["no-access", "api-down"].includes(s.status);
+  $("#bandQueue").hidden = !show;
+  if (!show) return;
+  const btn = $("#queueBtn");
+  btn.className = s.paused ? "btn go" : "btn";
+  btn.textContent = s.paused ? "Resume the queue" : "Pause the queue";
+  btn.disabled = queueBusy;
+}
+$("#queueBtn").onclick = async () => {
+  if (queueBusy) return;
+  queueBusy = true;
+  $("#queueBtn").disabled = true;
+  const r = await post("/api/queue", { paused: !last?.paused });
+  queueBusy = false;
+  $("#queueBtn").disabled = false;
+  $("#queueErr").textContent = r.error || "";
+};
+
+function renderLog(lines) {
+  const list = $("#log");
+  const all = lines.slice().reverse();
+  const shown = logOpen ? all : all.slice(0, 8);
+  $("#logMore").hidden = all.length <= 8;
+  $("#logMore").textContent = logOpen ? "Show less" : "Show everything";
+  if (!shown.length) {
+    list.innerHTML = '<li class="empty">Nothing yet.</li>';
+    return;
+  }
+  list.innerHTML = "";
+  for (const line of shown) {
+    const i = line.indexOf("  ");
+    const li = document.createElement("li");
+    const t = document.createElement("time");
+    t.textContent = i > 0 ? line.slice(0, i) : "";
+    const span = document.createElement("span");
+    span.textContent = i > 0 ? line.slice(i + 2) : line;
+    li.append(t, span);
+    list.append(li);
+  }
+}
+$("#logMore").onclick = () => { logOpen = !logOpen; renderLog(last?.lines || []); };
+
+$("#copyCtrl").onclick = (e) => copyButton(e.target, $("#ctrlUrl").textContent);
+$("#copyOverlay").onclick = (e) => copyButton(e.target, overlayUrl());
+
+$("#connectTp").onclick = () => { location.href = "/connect"; };
+
+$("#disconnectTp").onclick = async () => {
+  if (!confirm("Disconnect TipPhone from your TipPage?")) return;
+  await post("/api/sign-out");
+};
+
+const authError = new URLSearchParams(location.search).get("auth_error");
+if (authError) {
+  $("#authMsg").textContent = "Couldn't connect: " + authError;
+  history.replaceState(null, "", "/");
+}
+
+$("#testCall").onclick = async () => {
+  const r = await post("/api/test-call");
+  $("#callMsg").textContent = r.ok ? "Ringing with " + r.name + "'s last tip. Pick up." : r.error || "";
+  if (r.ok) { settings.testCalled = true; save(); if (last) render(last); }
+};
+
+// ---- overlay step ----
+
+$("#pos" + (settings.overlayPos === "top" ? "Top" : "Bottom")).checked = true;
+for (const id of ["posBottom", "posTop"]) {
+  $("#" + id).onchange = (e) => { settings.overlayPos = e.target.value; save(); $("#overlayUrl").textContent = overlayUrl(); };
+}
+$("#openOverlay").onclick = () => window.open(overlayUrl(), "_blank", "noopener");
+$("#testOverlay").onclick = async () => {
+  const r = await post("/api/test-overlay");
+  $("#overlayMsg").textContent = r.ok ? "Watch the overlay." : r.error || "";
+};
+
+$("#alertsOff").checked = settings.alertsOff;
+$("#alertsOff").onchange = (e) => { settings.alertsOff = e.target.checked; save(); if (last) render(last); };
+
+// ---- start (autoplay + device names need a click) ----
+
+$("#startBtn").onclick = async () => {
+  $("#startBtn").disabled = true;
+  try {
+    const mic = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mic.getTracks().forEach((t) => t.stop());
+  } catch {
+    $("#startMsg").textContent = "Microphone access was refused, so the outputs are listed by number. Pick them by ear with the test sound.";
+  }
+  unlocked = true;
+  $("#startBtn").textContent = "Started";
+  await loadSinks();
+  await connectPhone(false);
+  if (me) post("/player/" + me + "/ready", { ready: true });
+  if (last) render(last);
+};
+
+// ---- audio ----
+
+// "System default" and the same speakers picked by name are one device. chrome lists
+// the default under its own id with the real one's groupId, so compare groups
+let outputs = [];
+function outputGroup(id) {
+  const d = outputs.find((x) => x.deviceId === (id || "default"));
+  return d?.groupId || id || "default";
+}
+function sameOutput(a, b) {
+  return outputGroup(a) === outputGroup(b);
+}
+
+async function loadSinks() {
+  const devices = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "audiooutput");
+  outputs = devices;
+  for (const id of ["phoneSink", "streamSink"]) {
+    const sel = $("#" + id);
+    sel.innerHTML = "";
+    sel.add(new Option("System default", ""));
+    for (const d of devices) {
+      if (d.deviceId === "default" || d.deviceId === "") continue;
+      sel.add(new Option(d.label || "Output " + sel.length, d.deviceId));
+    }
+    sel.value = settings[id];
+    if (sel.value !== settings[id]) sel.value = "";
+  }
+}
+navigator.mediaDevices.addEventListener("devicechange", () => loadSinks());
+loadSinks();
+
+for (const id of ["phoneSink", "streamSink"]) {
+  $("#" + id).onchange = (e) => { settings[id] = e.target.value; save(); };
+}
+for (const id of ["phoneVol", "streamVol", "ringVol"]) {
+  $("#" + id).value = settings[id];
+  $("#" + id).oninput = (e) => { settings[id] = Number(e.target.value); save(); };
+}
+for (const id of ["streamOn", "ringPhone", "ringStream"]) {
+  $("#" + id).checked = settings[id];
+  $("#" + id).onchange = (e) => { settings[id] = e.target.checked; save(); };
+}
+
+async function sound(src, sink, volume, loop) {
+  const a = new Audio();
+  a.src = src;
+  a.volume = volume;
+  a.loop = !!loop;
+  if (sink && a.setSinkId) await a.setSinkId(sink);
+  return a;
+}
+
+function loaded(a) {
+  return new Promise((resolve, reject) => {
+    if (a.readyState >= 4) return resolve();
+    const t = setTimeout(() => reject(new Error("audio took too long to load")), 15000);
+    a.addEventListener("canplaythrough", () => { clearTimeout(t); resolve(); }, { once: true });
+    a.addEventListener("error", () => { clearTimeout(t); reject(new Error("couldn't load the audio")); }, { once: true });
+  });
+}
+
+async function playTts({ playId, url }) {
+  stopTts();
+  const report = (status, error) => post("/player/" + me + "/report", { playId, status, error });
+  const mine = { playId, els: [] };
+  current = mine;
+  try {
+    mine.els.push(await sound(url, settings.phoneSink, settings.phoneVol));
+    if (settings.streamOn && !sameOutput(settings.streamSink, settings.phoneSink)) {
+      mine.els.push(await sound(url, settings.streamSink, settings.streamVol));
+    }
+    await Promise.all(mine.els.map(loaded));
+    if (current !== mine) return;
+    await Promise.all(mine.els.map((a) => a.play()));
+    report("started");
+    let left = mine.els.length;
+    for (const a of mine.els) {
+      a.onended = () => {
+        if (--left > 0 || current !== mine) return;
+        current = null;
+        report("ended");
+      };
+    }
+  } catch (err) {
+    if (current === mine) {
+      stopTts();
+      report("error", err.message);
+    }
+  }
+}
+
+function stopTts() {
+  if (!current) return;
+  for (const a of current.els) { a.pause(); a.src = ""; }
+  current = null;
+}
+
+async function setRing(on) {
+  for (const a of ringEls) { a.pause(); a.src = ""; }
+  ringEls = [];
+  clearInterval(ringTimer);
+  ringTimer = null;
+  hidRing(on);
+  if (!on) return;
+  ringTimer = setInterval(() => hidRing(true), 2000);
+  try {
+    if (settings.ringPhone) ringEls.push(await sound(ringUrl, settings.phoneSink, settings.ringVol, true));
+    if (settings.ringStream && (!settings.ringPhone || !sameOutput(settings.streamSink, settings.phoneSink))) {
+      ringEls.push(await sound(ringUrl, settings.streamSink, settings.ringVol, true));
+    }
+    ringEls.forEach((a) => a.play().catch(() => {}));
+  } catch {}
+}
+
+$("#ringPick").onclick = () => $("#ringFile").click();
+$("#ringFile").onchange = async (e) => {
+  const f = e.target.files[0];
+  e.target.value = "";
+  if (!f) return;
+  const r = await fetch("/api/ring", {
+    method: "POST",
+    headers: { "content-type": f.type || "application/octet-stream", "x-file-name": encodeURIComponent(f.name) },
+    body: f,
+  }).then((x) => x.json()).catch(() => ({ error: "Couldn't send the file to TipPhone" }));
+  $("#soundMsg").textContent = r.error || "Saved. Test the ringer to hear it.";
+};
+$("#ringReset").onclick = async () => {
+  const r = await post("/api/ring/reset");
+  $("#soundMsg").textContent = r.error || "Back to the built-in ring.";
+};
+
+$("#testSound").onclick = async () => {
+  if (!unlocked) {
+    $("#soundMsg").textContent = "Press Start first.";
+    return;
+  }
+  const els = [await sound(ringUrl, settings.phoneSink, settings.phoneVol)];
+  const both = settings.streamOn && !sameOutput(settings.streamSink, settings.phoneSink);
+  if (both) els.push(await sound(ringUrl, settings.streamSink, settings.streamVol));
+  els.forEach((a) => a.play());
+  $("#soundMsg").textContent = both ? "Playing through the phone and the stream output." : settings.streamOn ? "Phone and stream are the same output, so it plays once." : "Playing through the phone output.";
+  settings.soundChecked = true;
+  save();
+  if (last) render(last);
+};
+
+// ---- the phone over webhid ----
+
+// the phone's output fields (ringer, leds) by walking its hid descriptor once
+function fieldsOf(device) {
+  const fields = [];
+  const offsets = {};
+  fields.bits = offsets;
+  const walk = (cols) => {
+    for (const c of cols) {
+      for (const r of c.outputReports || []) {
+        let off = offsets[r.reportId] || 0;
+        for (const it of r.items) {
+          if (!it.isConstant) {
+            const list = it.isRange ? range(it.usageMinimum, it.usageMaximum) : it.usages;
+            for (let n = 0; n < it.reportCount; n++) {
+              fields.push({
+                reportId: r.reportId, bit: off + n * it.reportSize, size: it.reportSize,
+                array: it.isArray, min: it.logicalMinimum || 0,
+                usages: it.isArray ? list : [list[Math.min(n, list.length - 1)]],
+              });
+            }
+          }
+          off += it.reportSize * it.reportCount;
+        }
+        offsets[r.reportId] = off;
+      }
+      walk(c.children || []);
+    }
+  };
+  walk(device.collections);
+  return fields;
+}
+
+function range(a, b) {
+  const out = [];
+  for (let u = a; u <= b && out.length < 1024; u++) out.push(u);
+  return out;
+}
+
+function layoutOf(device) {
+  const fields = fieldsOf(device);
+  const find = (usage) => fields.find((f) => f.usages.includes(usage));
+  const lengths = {};
+  for (const [id, bits] of Object.entries(fields.bits)) lengths[id] = Math.ceil(bits / 8);
+  return { ringer: find(RINGER), ringLed: find(LED_RING), lengths };
+}
+
+function setField(field, value) {
+  if (!field || !phone) return;
+  const id = field.reportId;
+  if (!outBufs[id]) outBufs[id] = new Uint8Array(layout.lengths[id] || 1);
+  const buf = outBufs[id];
+  for (let b = 0; b < field.size; b++) {
+    const i = (field.bit + b) >> 3;
+    if (i >= buf.length) return;
+    if (Math.floor(value / 2 ** b) & 1) buf[i] |= 1 << ((field.bit + b) & 7);
+    else buf[i] &= ~(1 << ((field.bit + b) & 7));
+  }
+  return id;
+}
+
+function send(ids) {
+  for (const id of new Set(ids.filter((x) => x !== undefined))) {
+    phone.sendReport(id, outBufs[id]).catch((err) => console.log("sendReport failed", err));
+  }
+}
+
+function hidRing(on) {
+  if (!phone || !layout) return;
+  const ids = [];
+  for (const f of [layout.ringer, layout.ringLed]) {
+    if (!f) continue;
+    const value = f.array ? (on ? f.usages.indexOf(f === layout.ringer ? RINGER : LED_RING) + f.min : 0) : (on ? 1 : 0);
+    ids.push(setField(f, value));
+  }
+  send(ids);
+}
+
+// the phone sends the hook as an event in byte 0 and the audio device in byte 3
+// of report 1: 0x40 is the handset, 0x02 is it back on the cradle. keypad, hold,
+// mute and the release packets change nothing. true = up, false = down, null =
+// not about the hook
+function hookFrom(e) {
+  if (e.reportId !== 1 || e.data.byteLength < 4) return null;
+  const keys = e.data.getUint8(0);
+  const device = e.data.getUint8(3);
+  if (keys & 0x01 || device === 0x40) return true;
+  if (device === 0x02) return false;
+  return null;
+}
+
+function onInput(e) {
+  const up = hookFrom(e);
+  if (up == null || up === hookPending) return;
+  hookPending = up;
+  // let it settle, a switch can bounce
+  clearTimeout(hookTimer);
+  hookTimer = setTimeout(() => {
+    if (up === offHook) return;
+    offHook = up;
+    showHook();
+    reportPhone();
+  }, 60);
+}
+
+function resetHook() {
+  clearTimeout(hookTimer);
+  hookPending = null;
+  offHook = false;
+}
+
+function phoneName() {
+  return pretend ? "Pretend phone" : phone?.productName;
+}
+
+function showHook() {
+  const name = phoneName();
+  $("#phoneLine").textContent = name ? name + ": " + (offHook ? "handset up" : "on the hook") : "No phone connected.";
+  $("#hookBtn").textContent = offHook ? "Hang up" : "Pick up";
+}
+
+function reportPhone() {
+  const name = phoneName();
+  showHook();
+  if (me) post("/player/" + me + "/phone", { connected: !!name, offHook, name });
+}
+
+// first run: the output whose name matches the phone's is the phone
+function pickPhoneOutput() {
+  if (settings.phoneSink || !phone?.productName) return;
+  const name = phone.productName.toLowerCase();
+  const out = outputs.find((d) => d.label.toLowerCase().includes(name));
+  if (!out) return;
+  settings.phoneSink = out.deviceId;
+  save();
+  $("#phoneSink").value = out.deviceId;
+}
+
+async function connectPhone(ask) {
+  if (pretend && !ask) return;
+  if (ask) setPretend(false);
+  if (!navigator.hid) {
+    $("#phoneMsg").textContent = "This browser can't talk to USB phones. Open this page in Chrome, Edge or Brave.";
+    return;
+  }
+  // only the phone this is built for is ever offered or opened. a device the
+  // browser already lets us see that isn't it (a headset, a different phone
+  // allowed in an earlier version) is passed over. the phone shows up as one
+  // entry per usb interface, the telephony one is the one that talks
+  const ours = (d) => d.vendorId === PHONE_VENDOR && d.productId === PHONE_PRODUCT;
+  let list = (await navigator.hid.getDevices()).filter(ours);
+  if (ask) {
+    try {
+      const picked = await navigator.hid.requestDevice({ filters: [{ vendorId: PHONE_VENDOR, productId: PHONE_PRODUCT }] });
+      list = list.concat(picked.filter(ours));
+    } catch {}
+  }
+  const dev = list.find((d) => d.collections.some((c) => c.usagePage === 0x0b)) || list[0];
+  if (!dev) {
+    $("#phoneMsg").textContent = ask ? "Nothing was picked. If the list was empty the phone isn't plugged in, or something else has it." : "";
+    return reportPhone();
+  }
+  try {
+    if (!dev.opened) await dev.open();
+  } catch (err) {
+    $("#phoneMsg").textContent = "Couldn't open the phone: " + err.message + ". Close Teams or Skype if they're running and try again.";
+    return;
+  }
+  if (phone && phone !== dev) phone.removeEventListener("inputreport", onInput);
+  phone = dev;
+  layout = layoutOf(dev);
+  outBufs = {};
+  resetHook();
+  dev.addEventListener("inputreport", onInput);
+  pickPhoneOutput();
+  displaySetup();
+  $("#phoneMsg").textContent = "";
+  reportPhone();
+}
+
+$("#connectPhone").onclick = () => connectPhone(true);
+
+// stands in for the handset so the whole flow can be tried on any pc
+let pretend = false;
+
+function setPretend(on) {
+  if (pretend === on) return;
+  pretend = on;
+  if (on && phone) {
+    phone.removeEventListener("inputreport", onInput);
+    phone = null;
+    layout = null;
+  }
+  resetHook();
+  $("#hookBtn").hidden = !on;
+  $("#pretend").textContent = on ? "Back to the real phone" : "Try it without a phone";
+  $("#phoneMsg").textContent = on ? "Pick up and Hang up are the button, or the space bar. Set Phone in step 4 to your speakers or headphones." : "";
+  reportPhone();
+  if (!on && unlocked) connectPhone(false);
+}
+
+function toggleHook() {
+  offHook = !offHook;
+  hookPending = offHook;
+  reportPhone();
+}
+
+$("#pretend").onclick = () => setPretend(!pretend);
+$("#hookBtn").onclick = toggleHook;
+document.addEventListener("keydown", (e) => {
+  if (!pretend || e.code !== "Space" || e.repeat || /INPUT|SELECT|BUTTON|A/.test(e.target.tagName)) return;
+  e.preventDefault();
+  toggleHook();
+});
+$("#testRing").onclick = () => {
+  if (!unlocked) { $("#phoneMsg").textContent = "Press Start first."; return; }
+  setRing(true);
+  setTimeout(() => setRing(false), 3000);
+};
+// the phone's screen: two lines, utf-16, eight characters a packet, 28 a line
+async function out(id, data) {
+  const buf = new Uint8Array(Math.max(layout?.lengths?.[id] || 0, data.length));
+  buf.set(data);
+  await phone.sendReport(id, buf);
+  await new Promise((r) => setTimeout(r, 50));
+}
+async function displayLine(pos, text) {
+  await out(0x14, [pos, 0x80]);
+  const chars = Array.from(String(text || "")).slice(0, 28);
+  for (let i = 0; i < Math.max(chars.length, 1); i += 8) {
+    const buf = new Uint8Array(17);
+    buf[0] = i + 8 >= chars.length ? 0x80 : 0x00;
+    chars.slice(i, i + 8).forEach((ch, n) => {
+      const code = ch.charCodeAt(0);
+      buf[1 + n * 2] = code & 0xff;
+      buf[2 + n * 2] = code >> 8;
+    });
+    await out(0x15, buf);
+  }
+}
+async function displayWrite(top, bottom) {
+  if (!phone) return;
+  try {
+    await out(0x13, [0x15]);
+    await displayLine(0x05, top);
+    await displayLine(0x0a, bottom);
+  } catch (err) { console.log("display", err); }
+}
+async function displayClear() {
+  if (!phone) return;
+  try { await out(0x13, [0x00]); } catch (err) { console.log("display", err); }
+}
+async function displaySetup() {
+  try { await phone.sendFeatureReport(0x17, new Uint8Array([0x09, 0x04, 0x01, 0x02])); } catch (err) { console.log("display setup", err); }
+}
+
+if (navigator.hid) {
+  navigator.hid.addEventListener("connect", () => unlocked && connectPhone(false));
+  navigator.hid.addEventListener("disconnect", (e) => {
+    if (e.device !== phone) return;
+    phone = null;
+    layout = null;
+    resetHook();
+    reportPhone();
+  });
+}
+</script>
+</body>
+</html>

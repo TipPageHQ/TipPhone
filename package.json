@@ -1,0 +1,11 @@
+{
+  "name": "tip-phone",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "rings a usb desk phone for tips and plays the tts down the line and on stream",
+  "scripts": {
+    "dev": "bun run src/main.js",
+    "build": "bun build src/main.js --compile --target=bun-windows-x64 --outfile dist/TipPhone.exe"
+  }
+}
